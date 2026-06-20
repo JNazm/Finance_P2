@@ -1,0 +1,25 @@
+{
+  "name": "finance_p2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JNazm/Finance_P2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JNazm/Finance_P2/issues"
+  },
+  "homepage": "https://github.com/JNazm/Finance_P2#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
