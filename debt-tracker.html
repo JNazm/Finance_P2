@@ -3,13 +3,8 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <meta name="description" content="">
-        <meta name="author" content="">
-
         <title>Mini Finance - Debt Tracker</title>
 
-        <!-- CSS FILES -->      
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;700&display=swap" rel="stylesheet">
@@ -18,150 +13,194 @@
         <link href="css/apexcharts.css" rel="stylesheet">
         <link href="css/tooplate-mini-finance.css" rel="stylesheet">
 
-        <script src="script.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                checkLogin();
-                renderDebts();
-            });
-        </script>
-
         <style>
-            .debt-list-item {
+            .debt-card {
+                background: #fff;
+                border-radius: 10px;
+                padding: 20px 24px;
+                margin-bottom: 18px;
+                border: 1px solid #e8eaf0;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            }
+            .debt-card-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 flex-wrap: wrap;
                 gap: 10px;
             }
-            .debt-info { flex: 1; min-width: 150px; }
-            .debt-name { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
-            .debt-details { font-size: 13px; color: #888; }
-            .debt-amount { font-size: 18px; font-weight: 700; color: #e74c3c; white-space: nowrap; }
-            .paid-badge {
-                display: inline-block;
-                background: #27ae60;
-                color: white;
-                padding: 2px 10px;
-                border-radius: 20px;
-                font-size: 11px;
+            .debt-card-title {
+                font-size: 16px;
+                font-weight: 700;
+                margin: 0;
             }
-            .paid-checkbox { width: 18px; height: 18px; cursor: pointer; }
+            .debt-card-meta {
+                font-size: 13px;
+                color: #666;
+                margin-top: 4px;
+            }
+            .progress-pill {
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 12px;
+                border-radius: 20px;
+                background: #f0f4ff;
+                color: #3d5af1;
+            }
+            .progress-pill.done {
+                background: #e6f9f0;
+                color: #1a9e5c;
+            }
+            .detail-panel {
+                display: none;
+                margin-top: 18px;
+                border-top: 1px solid #f0f0f0;
+                padding-top: 16px;
+            }
+            .detail-panel.open { display: block; }
+            .month-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+            .month-table th {
+                background: #5a6a7e;
+                color: #fff;
+                padding: 8px 14px;
+                text-align: center;
+                font-weight: 600;
+            }
+            .month-table td {
+                padding: 8px 14px;
+                text-align: center;
+                border-bottom: 1px solid #f0f0f0;
+                vertical-align: middle;
+            }
+            .month-table tr:last-child td { border-bottom: none; }
+            .month-table tr.paid-row td { color: #888; }
+            .month-table tr.paid-row td:first-child { text-decoration: line-through; }
+            .paid-check {
+                width: 18px; height: 18px;
+                cursor: pointer;
+                accent-color: #27ae60;
+            }
+            .summary-box {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+                margin-top: 14px;
+            }
+            .summary-item {
+                flex: 1;
+                min-width: 120px;
+                border-radius: 8px;
+                padding: 12px 16px;
+                text-align: center;
+            }
+            .summary-item.total   { background: #f0f4ff; }
+            .summary-item.paid    { background: #e6f9f0; }
+            .summary-item.unpaid  { background: #fff3f3; }
+            .summary-item .s-val  { font-size: 22px; font-weight: 700; }
+            .summary-item .s-lbl  { font-size: 11px; color: #888; margin-top: 2px; }
+            .summary-item.total  .s-val { color: #3d5af1; }
+            .summary-item.paid   .s-val { color: #1a9e5c; }
+            .summary-item.unpaid .s-val { color: #e74c3c; }
+            .btn-detail {
+                background: #f0f4ff;
+                color: #3d5af1;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 16px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+            .btn-detail:hover { background: #dde4ff; }
+            .btn-delete-debt {
+                background: #fff3f3;
+                color: #e74c3c;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 12px;
+                font-size: 13px;
+                cursor: pointer;
+            }
+            .progress-bar-wrap {
+                background: #f0f0f0;
+                border-radius: 20px;
+                height: 6px;
+                margin-top: 8px;
+                overflow: hidden;
+            }
+            .progress-bar-fill {
+                height: 6px;
+                border-radius: 20px;
+                background: linear-gradient(90deg, #3d5af1, #1a9e5c);
+                transition: width 0.4s;
+            }
         </style>
+
+        <script src="script.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                checkLogin();
+                renderAll();
+            });
+        </script>
     </head>
-    
+
     <body>
         <header class="navbar sticky-top flex-md-nowrap">
             <div class="col-md-3 col-lg-3 me-0 px-3 fs-6">
-                <a class="navbar-brand" href="index.html">
-                    <i class="bi-box"></i>
-                    Mini Finance
-                </a>
+                <a class="navbar-brand" href="index.html"><i class="bi-box"></i> Mini Finance</a>
             </div>
-
             <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <form class="custom-form header-form ms-lg-3 ms-md-3 me-lg-auto me-md-auto order-2 order-lg-0 order-md-0" action="#" method="get" role="form">
                 <input class="form-control" name="search" type="text" placeholder="Search" aria-label="Search">
             </form>
-
             <div class="navbar-nav me-lg-2">
                 <div class="nav-item text-nowrap d-flex align-items-center">
                     <div class="dropdown ps-3">
                         <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi-bell"></i>
-                            <span class="position-absolute start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                                <span class="visually-hidden">New alerts</span>
-                            </span>
+                            <span class="position-absolute start-100 translate-middle p-1 bg-danger border border-light rounded-circle"><span class="visually-hidden">New alerts</span></span>
                         </a>
                         <ul class="dropdown-menu notifications-block-wrap bg-white shadow">
                             <small>Notifications</small>
                             <li class="notifications-block border-bottom pb-2 mb-2">
                                 <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="notifications-icon-wrap bg-success">
-                                        <i class="notifications-icon bi-check-circle-fill"></i>
-                                    </div>
-                                    <div>
-                                        <span>Your account has been created successfuly.</span>
-                                        <p>12 days ago</p>
-                                    </div>
+                                    <div class="notifications-icon-wrap bg-success"><i class="notifications-icon bi-check-circle-fill"></i></div>
+                                    <div><span>Your account has been created successfuly.</span><p>12 days ago</p></div>
                                 </a>
                             </li>
                             <li class="notifications-block border-bottom pb-2 mb-2">
                                 <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="notifications-icon-wrap bg-info">
-                                        <i class="notifications-icon bi-folder"></i>
-                                    </div>
-                                    <div>
-                                        <span>Please check. We have sent a Daily report.</span>
-                                        <p>10 days ago</p>
-                                    </div>
+                                    <div class="notifications-icon-wrap bg-info"><i class="notifications-icon bi-folder"></i></div>
+                                    <div><span>Please check. We have sent a Daily report.</span><p>10 days ago</p></div>
                                 </a>
                             </li>
                             <li class="notifications-block">
                                 <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="notifications-icon-wrap bg-danger">
-                                        <i class="notifications-icon bi-question-circle"></i>
-                                    </div>
-                                    <div>
-                                        <span>Account verification failed.</span>
-                                        <p>1 hour ago</p>
-                                    </div>
+                                    <div class="notifications-icon-wrap bg-danger"><i class="notifications-icon bi-question-circle"></i></div>
+                                    <div><span>Account verification failed.</span><p>1 hour ago</p></div>
                                 </a>
                             </li>
                         </ul>
                     </div>
-
                     <div class="dropdown ps-1">
                         <a class="nav-link dropdown-toggle text-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi-three-dots-vertical"></i>
                         </a>
                         <div class="dropdown-menu dropdown-menu-social bg-white shadow">
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/search.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Google</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/spotify.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Spotify</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/telegram.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Telegram</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/snapchat.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Snapchat</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/tiktok.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Tiktok</span>
-                                        </a>
-                                    </div>
-                                    <div class="col-lg-4 col-md-4 col-4">
-                                        <a class="dropdown-item text-center" href="#">
-                                            <img src="images/social/youtube.png" class="profile-image img-fluid" alt="">
-                                            <span class="d-block">Youtube</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="container"><div class="row">
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/search.png" class="profile-image img-fluid" alt=""><span class="d-block">Google</span></a></div>
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/spotify.png" class="profile-image img-fluid" alt=""><span class="d-block">Spotify</span></a></div>
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/telegram.png" class="profile-image img-fluid" alt=""><span class="d-block">Telegram</span></a></div>
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/snapchat.png" class="profile-image img-fluid" alt=""><span class="d-block">Snapchat</span></a></div>
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/tiktok.png" class="profile-image img-fluid" alt=""><span class="d-block">Tiktok</span></a></div>
+                                <div class="col-4"><a class="dropdown-item text-center" href="#"><img src="images/social/youtube.png" class="profile-image img-fluid" alt=""><span class="d-block">Youtube</span></a></div>
+                            </div></div>
                         </div>
                     </div>
-
                     <div class="dropdown px-3">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="images/medium-shot-happy-man-smiling.jpg" class="profile-image img-fluid" alt="">
@@ -170,19 +209,14 @@
                             <li>
                                 <div class="dropdown-menu-profile-thumb d-flex">
                                     <img src="images/medium-shot-happy-man-smiling.jpg" class="profile-image img-fluid me-3" alt="">
-                                    <div class="d-flex flex-column">
-                                        <small>Thomas</small>
-                                        <a href="#">thomas@site.com</a>
-                                    </div>
+                                    <div class="d-flex flex-column"><small>Thomas</small><a href="#">thomas@site.com</a></div>
                                 </div>
                             </li>
                             <li><a class="dropdown-item" href="profile.html"><i class="bi-person me-2"></i>Profile</a></li>
                             <li><a class="dropdown-item" href="setting.html"><i class="bi-gear me-2"></i>Settings</a></li>
                             <li><a class="dropdown-item" href="help-center.html"><i class="bi-question-circle me-2"></i>Help</a></li>
                             <li class="border-top mt-3 pt-2 mx-4">
-                                <a class="dropdown-item ms-0 me-0" href="#" onclick="logout(); return false;">
-                                    <i class="bi-box-arrow-left me-2"></i>Logout
-                                </a>
+                                <a class="dropdown-item ms-0 me-0" href="#" onclick="logout(); return false;"><i class="bi-box-arrow-left me-2"></i>Logout</a>
                             </li>
                         </ul>
                     </div>
@@ -195,44 +229,18 @@
                 <nav id="sidebarMenu" class="col-md-3 col-lg-3 d-md-block sidebar collapse">
                     <div class="position-sticky py-4 px-3 sidebar-sticky">
                         <ul class="nav flex-column h-100">
-                            <li class="nav-item">
-                                <a class="nav-link" href="index.html">
-                                    <i class="bi-house-fill me-2"></i>Overview
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="wallet.html">
-                                    <i class="bi-wallet me-2"></i>My Wallet
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="profile.html">
-                                    <i class="bi-person me-2"></i>Profile
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" href="debt-tracker.html">
-                                    <i class="bi-cash-coin me-2"></i>Debt Tracker
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="setting.html">
-                                    <i class="bi-gear me-2"></i>Settings
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="help-center.html">
-                                    <i class="bi-question-circle me-2"></i>Help Center
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi-house-fill me-2"></i>Overview</a></li>
+                            <li class="nav-item"><a class="nav-link" href="wallet.html"><i class="bi-wallet me-2"></i>My Wallet</a></li>
+                            <li class="nav-item"><a class="nav-link" href="profile.html"><i class="bi-person me-2"></i>Profile</a></li>
+                            <li class="nav-item"><a class="nav-link active" href="debt-tracker.html"><i class="bi-cash-coin me-2"></i>Debt Tracker</a></li>
+                            <li class="nav-item"><a class="nav-link" href="setting.html"><i class="bi-gear me-2"></i>Settings</a></li>
+                            <li class="nav-item"><a class="nav-link" href="help-center.html"><i class="bi-question-circle me-2"></i>Help Center</a></li>
                             <li class="nav-item featured-box mt-lg-5 mt-4 mb-4">
                                 <img src="images/credit-card.png" class="img-fluid" alt="">
                                 <a class="btn custom-btn" href="#">Upgrade</a>
                             </li>
                             <li class="nav-item border-top mt-auto pt-2">
-                                <a class="nav-link" href="#" onclick="logout(); return false;">
-                                    <i class="bi-box-arrow-left me-2"></i>Logout
-                                </a>
+                                <a class="nav-link" href="#" onclick="logout(); return false;"><i class="bi-box-arrow-left me-2"></i>Logout</a>
                             </li>
                         </ul>
                     </div>
@@ -243,94 +251,44 @@
                         <h1 class="h2 mb-0">Debt Tracker</h1>
                     </div>
 
-                    <!-- Total Summary -->
-                    <div class="row my-4">
-                        <div class="col-lg-4 col-md-6 col-12 mb-3">
-                            <div class="custom-block bg-white text-center">
-                                <small class="text-muted">Total Debt Owed</small>
-                                <h3 class="mt-2 text-danger" id="totalDebt">$0.00</h3>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 col-12 mb-3">
-                            <div class="custom-block bg-white text-center">
-                                <small class="text-muted">Paid This Month</small>
-                                <h3 class="mt-2 text-success" id="paidCount">0</h3>
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6 col-12 mb-3">
-                            <div class="custom-block bg-white text-center">
-                                <small class="text-muted">Unpaid This Month</small>
-                                <h3 class="mt-2 text-warning" id="unpaidCount">0</h3>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Add Debt Form -->
                     <div class="row my-4">
-                        <div class="col-lg-12 col-12">
+                        <div class="col-12">
                             <div class="custom-block bg-white">
-                                <h5 class="mb-4">Add New Debt</h5>
+                                <h5 class="mb-4"><i class="bi-plus-circle me-2"></i>Add New Debt</h5>
                                 <form id="debtForm">
-                                    <div class="row">
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Name</label>
-                                            <input type="text" class="form-control" id="debtName" placeholder="e.g., John Doe" required>
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-3">
+                                            <label class="form-label">Debt Name</label>
+                                            <input type="text" class="form-control" id="inputName" placeholder="e.g. Car Loan" required>
                                         </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Amount ($)</label>
-                                            <input type="number" class="form-control" id="debtAmount" placeholder="0.00" step="0.01" min="0" required>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Total Amount (RM)</label>
+                                            <input type="number" class="form-control" id="inputTotal" placeholder="0.00" step="0.01" min="0" required>
                                         </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Interval</label>
-                                            <select class="form-control" id="debtInterval" required>
-                                                <option value="">Select Interval</option>
-                                                <option value="One-time">One-time</option>
-                                                <option value="Weekly">Weekly</option>
-                                                <option value="Bi-weekly">Bi-weekly</option>
-                                                <option value="Monthly">Monthly</option>
-                                                <option value="Yearly">Yearly</option>
-                                            </select>
+                                        <div class="col-md-2">
+                                            <label class="form-label">No. of Months</label>
+                                            <input type="number" class="form-control" id="inputMonths" placeholder="e.g. 12" min="1" required>
                                         </div>
-                                        <div class="col-md-3 mb-3">
-                                            <label class="form-label">Paid This Month?</label>
-                                            <div class="form-check mt-2">
-                                                <input type="checkbox" class="form-check-input" id="debtPaid">
-                                                <label class="form-check-label" for="debtPaid">Yes, already paid</label>
-                                            </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Payment / Month (RM)</label>
+                                            <input type="number" class="form-control" id="inputPerMonth" placeholder="Auto-calculated" step="0.01" min="0" readonly style="background:#f8f9fa;">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Start Month</label>
+                                            <input type="month" class="form-control" id="inputStart" required>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="submit" class="btn custom-btn w-100">Add</button>
                                         </div>
                                     </div>
-                                    <button type="submit" class="btn custom-btn">Add Debt</button>
                                 </form>
                             </div>
                         </div>
                     </div>
 
                     <!-- Debt List -->
-                    <div class="row my-4">
-                        <div class="col-lg-12 col-12">
-                            <div class="custom-block bg-white">
-                                <h5 class="mb-4">Your Debts</h5>
-                                <div class="table-responsive">
-                                    <table class="account-table table" id="debtTable">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Amount</th>
-                                                <th>Interval</th>
-                                                <th>Paid This Month</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="debtTableBody">
-                                            <tr id="noDebtsRow">
-                                                <td colspan="5" class="text-center text-muted py-4">No debts added yet.</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="debtList"></div>
 
                 </main>
             </div>
@@ -341,92 +299,175 @@
         <script src="js/custom.js"></script>
 
         <script>
-            const DEBT_KEY = 'finance_debts';
+            const DEBT_KEY = 'finance_debts_v3';
+
+            // Auto-calculate payment per month
+            function calcPerMonth() {
+                const total  = parseFloat(document.getElementById('inputTotal').value);
+                const months = parseInt(document.getElementById('inputMonths').value);
+                const field  = document.getElementById('inputPerMonth');
+                if (total > 0 && months > 0) {
+                    field.value = (total / months).toFixed(2);
+                } else {
+                    field.value = '';
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('inputTotal').addEventListener('input', calcPerMonth);
+                document.getElementById('inputMonths').addEventListener('input', calcPerMonth);
+            });
 
             function loadDebts() {
                 return JSON.parse(localStorage.getItem(DEBT_KEY)) || [];
             }
 
-            function saveDebts(debts) {
-                localStorage.setItem(DEBT_KEY, JSON.stringify(debts));
+            function saveDebts(data) {
+                localStorage.setItem(DEBT_KEY, JSON.stringify(data));
             }
 
-            function renderDebts() {
-                const debts = loadDebts();
-                const tbody = document.getElementById('debtTableBody');
-                const noRow = document.getElementById('noDebtsRow');
+            function getMonthLabel(startYYYYMM, offsetMonths) {
+                const [y, m] = startYYYYMM.split('-').map(Number);
+                const d = new Date(y, m - 1 + offsetMonths);
+                return d.toLocaleString('en-MY', { month: 'short', year: 'numeric' });
+            }
 
-                tbody.innerHTML = '';
+            function renderAll() {
+                const debts = loadDebts();
+                const container = document.getElementById('debtList');
+                container.innerHTML = '';
 
                 if (debts.length === 0) {
-                    tbody.innerHTML = '<tr id="noDebtsRow"><td colspan="5" class="text-center text-muted py-4">No debts added yet.</td></tr>';
-                } else {
-                    debts.forEach((debt, index) => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><strong>${debt.name}</strong></td>
-                            <td class="text-danger">$${parseFloat(debt.amount).toFixed(2)}</td>
-                            <td>${debt.interval}</td>
-                            <td>
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" ${debt.paid ? 'checked' : ''} onchange="togglePaid(${index})">
-                                    <label class="form-check-label">
-                                        ${debt.paid ? '<span class="badge text-bg-success">Paid</span>' : '<span class="badge text-bg-danger">Unpaid</span>'}
-                                    </label>
+                    container.innerHTML = '<div class="alert alert-info text-center">No debts yet. Add one above to get started!</div>';
+                    return;
+                }
+
+                debts.forEach((debt, di) => {
+                    const paidCount = debt.payments.filter(p => p.paid).length;
+                    const totalMonths = debt.payments.length;
+                    const pct = Math.round((paidCount / totalMonths) * 100);
+                    const allDone = paidCount === totalMonths;
+
+                    const card = document.createElement('div');
+                    card.className = 'debt-card';
+                    card.id = `debt-card-${di}`;
+                    card.innerHTML = `
+                        <div class="debt-card-header">
+                            <div>
+                                <div class="debt-card-title">${debt.name}</div>
+                                <div class="debt-card-meta">
+                                    RM${parseFloat(debt.perMonth).toFixed(2)}/month &nbsp;•&nbsp;
+                                    ${totalMonths} months &nbsp;•&nbsp;
+                                    Total: RM${parseFloat(debt.total).toFixed(2)}
                                 </div>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" onclick="deleteDebt(${index})">
-                                    <i class="bi-trash"></i> Delete
+                                <div class="progress-bar-wrap" style="max-width:260px">
+                                    <div class="progress-bar-fill" style="width:${pct}%"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <span class="progress-pill ${allDone ? 'done' : ''}">
+                                    ${paidCount}/${totalMonths} months paid
+                                </span>
+                                <button class="btn-detail" onclick="toggleDetail(${di})">
+                                    <i class="bi-list-ul me-1"></i> Detail
                                 </button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
+                                <button class="btn-delete-debt" onclick="deleteDebt(${di})">
+                                    <i class="bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                updateSummary();
+                        <div class="detail-panel" id="detail-${di}">
+                            <div class="summary-box">
+                                <div class="summary-item total">
+                                    <div class="s-val">${totalMonths}</div>
+                                    <div class="s-lbl">TOTAL MONTHS</div>
+                                </div>
+                                <div class="summary-item paid">
+                                    <div class="s-val">${paidCount}</div>
+                                    <div class="s-lbl">MONTHS PAID</div>
+                                </div>
+                                <div class="summary-item unpaid">
+                                    <div class="s-val">${totalMonths - paidCount}</div>
+                                    <div class="s-lbl">MONTHS REMAINING</div>
+                                </div>
+                                <div class="summary-item total">
+                                    <div class="s-val">RM${(paidCount * parseFloat(debt.perMonth)).toFixed(2)}</div>
+                                    <div class="s-lbl">AMOUNT PAID</div>
+                                </div>
+                                <div class="summary-item unpaid">
+                                    <div class="s-val">RM${((totalMonths - paidCount) * parseFloat(debt.perMonth)).toFixed(2)}</div>
+                                    <div class="s-lbl">AMOUNT REMAINING</div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive mt-4">
+                                <table class="month-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Month</th>
+                                            <th>Amount (RM)</th>
+                                            <th>Paid?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${debt.payments.map((p, pi) => `
+                                        <tr class="${p.paid ? 'paid-row' : ''}">
+                                            <td>${pi + 1}</td>
+                                            <td>${getMonthLabel(debt.startMonth, pi)}</td>
+                                            <td>RM${parseFloat(debt.perMonth).toFixed(2)}</td>
+                                            <td>
+                                                <input type="checkbox" class="paid-check"
+                                                    ${p.paid ? 'checked' : ''}
+                                                    onchange="togglePayment(${di}, ${pi})">
+                                            </td>
+                                        </tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
             }
 
-            function updateSummary() {
-                const debts = loadDebts();
-                const total = debts.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
-                const paid = debts.filter(d => d.paid).length;
-                const unpaid = debts.length - paid;
-
-                document.getElementById('totalDebt').textContent = '$' + total.toFixed(2);
-                document.getElementById('paidCount').textContent = paid;
-                document.getElementById('unpaidCount').textContent = unpaid;
+            function toggleDetail(di) {
+                const panel = document.getElementById(`detail-${di}`);
+                panel.classList.toggle('open');
             }
 
-            function togglePaid(index) {
+            function togglePayment(di, pi) {
                 const debts = loadDebts();
-                debts[index].paid = !debts[index].paid;
+                debts[di].payments[pi].paid = !debts[di].payments[pi].paid;
                 saveDebts(debts);
-                renderDebts();
+                renderAll();
+                // Re-open the detail panel after re-render
+                document.getElementById(`detail-${di}`).classList.add('open');
             }
 
-            function deleteDebt(index) {
-                if (confirm('Delete this debt entry?')) {
-                    const debts = loadDebts();
-                    debts.splice(index, 1);
-                    saveDebts(debts);
-                    renderDebts();
-                }
+            function deleteDebt(di) {
+                if (!confirm('Delete this debt?')) return;
+                const debts = loadDebts();
+                debts.splice(di, 1);
+                saveDebts(debts);
+                renderAll();
             }
 
             document.getElementById('debtForm').addEventListener('submit', function(e) {
                 e.preventDefault();
+                const name       = document.getElementById('inputName').value.trim();
+                const total      = document.getElementById('inputTotal').value;
+                const months     = parseInt(document.getElementById('inputMonths').value);
+                const perMonth   = parseFloat(document.getElementById('inputPerMonth').value) || (parseFloat(document.getElementById('inputTotal').value) / parseInt(document.getElementById('inputMonths').value));
+                const startMonth = document.getElementById('inputStart').value;
+
+                const payments = Array.from({ length: months }, () => ({ paid: false }));
+
                 const debts = loadDebts();
-                debts.push({
-                    name: document.getElementById('debtName').value,
-                    amount: document.getElementById('debtAmount').value,
-                    interval: document.getElementById('debtInterval').value,
-                    paid: document.getElementById('debtPaid').checked
-                });
+                debts.push({ name, total, months, perMonth, startMonth, payments });
                 saveDebts(debts);
                 this.reset();
-                renderDebts();
+                renderAll();
             });
         </script>
     </body>
