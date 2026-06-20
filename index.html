@@ -7,8 +7,10 @@
           <!-- Login protection scripts -->
         <script src="script.js"></script>
         <script>
-            checkLogin(); // Prevent unauthorized access
-        </script>
+              document.addEventListener('DOMContentLoaded', function() {
+                  checkLogin(); // Prevent unauthorized access
+              });
+          </script>
 
         <meta name="description" content="">
         <meta name="author" content="Tooplate">
@@ -241,6 +243,13 @@ Bootstrap 5 Dashboard Admin Template
                                 <a class="nav-link" href="profile.html">
                                     <i class="bi-person me-2"></i>
                                     Profile
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="debt-tracker.html">
+                                    <i class="bi-cash-coin me-2"></i>
+                                    Debt Tracker
                                 </a>
                             </li>
 
